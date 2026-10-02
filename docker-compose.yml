@@ -1,22 +1,66 @@
 version: '3.8'
 
 services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: medison_db
+      MYSQL_USER: medison_user
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+
   backend:
-    build: ./backend
-    container_name: hospital_django_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
     volumes:
       - ./backend:/app
-    ports:
-      - "8000:8000"
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    env_file:
+      - .env
+    expose:
+      - "8000"
     environment:
-      - DEBUG=1
+      - DEBUG=0
+      - DB_HOST=db
+      - DB_PORT=3306
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
-    build: ./frontend
-    container_name: hospital_react_frontend
-    ports:
-      - "80:80"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: always
+    volumes:
+      - react_build:/app/build
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    expose:
+      - "80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - react_build:/usr/share/nginx/html
     depends_on:
       - backend
+      - frontend
+
+volumes:
+  static_volume:
+  media_volume:
+  mysql_data:
+  react_build:
