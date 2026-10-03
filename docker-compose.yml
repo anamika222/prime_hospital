@@ -51,11 +51,10 @@ services:
     networks:
       - medison-network
 
-  nginx:
+    nginx:
     image: nginx:alpine
     restart: always
-    expose:
-      - "80"
+    stop_grace_period: 3s
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/staticfiles
@@ -64,18 +63,8 @@ services:
     depends_on:
       - backend
       - frontend
+    labels:
+      ... (Traefik label gulo jemon ache temni thakbe)
     networks:
-      - medison-network
       - dokploy-network
-
-volumes:
-  static_volume:
-  media_volume:
-  mysql_data:
-  react_build:
-
-networks:
-  medison-network:
-    driver: bridge
-  dokploy-network:
-    external: true
+      - default
