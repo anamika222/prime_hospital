@@ -51,7 +51,7 @@ services:
     networks:
       - medison-network
 
-    nginx:
+  nginx:
     image: nginx:alpine
     restart: always
     stop_grace_period: 3s
