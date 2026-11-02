@@ -1,15 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+// 🟢 Dynamically Pick Base URL based on Environment
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_URL || 'http://127.0.0.1:8000';
 
-const API = axios.create({
+const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-export const fetchDoctors = () => API.get('/doctors/');
-export const createAppointment = (data) => API.post('/appointments/', data);
-
-export default API;
+export default api;

@@ -1,6 +1,9 @@
 from django.urls import path
-from .views import ActiveHeroSlideListView
+from .views import AboutPageDataView, DiagnosticTestListView, HeroSliderListView, PatientReportSearchAPIView
 
 urlpatterns = [
-    path('api/hero-slides/', ActiveHeroSlideListView.as_view(), name='hero-slide-list'),
+    path('hero-sliders/', HeroSliderListView.as_view(), name='hero-slider-list'),
+    path('tests/', DiagnosticTestListView.as_view(), name='test-list'),
+    path('reports/download/', PatientReportSearchAPIView.as_view(), name='report-download'),
+    path('about/', AboutPageDataView.as_view(), name='about-data'),
 ]
