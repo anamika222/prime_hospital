@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Search, Clock, Phone, Award, Sparkles, Home, ArrowLeft } from 'lucide-react';
 
 // Vite-safe Environment Variable Access
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_URL || '';
 const STORAGE_KEY = 'site_lang';
 
 // Excel sheet matching initial doctor database
@@ -132,7 +132,7 @@ export default function DoctorsPage() {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/doctors`);
+                const res = await fetch(`${API_BASE_URL}/doctors/`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.length > 0) {

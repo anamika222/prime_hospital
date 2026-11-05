@@ -8,9 +8,9 @@ import 'swiper/css/navigation';
 import 'swiper/css/effect-fade';
 
 // Vite-safe Environment Variable Access
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_URL || 'http://127.0.0.1:8000';
-
+// Brug relative stier i produktion
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_URL || '';
 const DEFAULT_SLIDES = [
     {
         id: 1,

@@ -72,7 +72,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ['id', 'name_bn', 'name_en', 'icon', 'description', 'doctors']
+        fields = ['id', 'name_bn', 'name_en', 'icon', 'description_bn', 'description_en', 'doctors']
 
 class FeatureSerializer(serializers.ModelSerializer):
     class Meta:

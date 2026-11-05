@@ -48,6 +48,7 @@ class PatientReportAdmin(admin.ModelAdmin):
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ('name_en', 'name_bn', 'icon')
     search_fields = ('name_en', 'name_bn')
+    fields = ('name_en', 'name_bn', 'icon', 'description_en', 'description_bn')
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):

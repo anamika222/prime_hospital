@@ -10,7 +10,8 @@ import {
     ArrowLeft
 } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.yourhospital.com/api';
+// Local fallback e sothik Relative Path (/api) set korun:
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const STORAGE_KEY = 'site_lang';
 
 // Fallback initial database matching Patuakhali Prime Clinic data
@@ -110,7 +111,7 @@ export default function Department() {
         const fetchDepartments = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch(`${API_BASE_URL}/departments`);
+                const res = await fetch(`${API_BASE_URL}/departments/`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.length > 0) {

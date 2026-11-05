@@ -79,7 +79,8 @@ class Department(models.Model):
     name_bn = models.CharField(max_length=255)  # e.g. অর্থোপেডিক কনসালটেন্ট ও ট্রমা সার্জন
     name_en = models.CharField(max_length=255)  # e.g. Orthopedic Consultant and Trauma Surgeon
     icon = models.CharField(max_length=100, default='Stethoscope', help_text="Lucide Icon name")
-    description = models.TextField(blank=True, null=True)
+    description_bn = models.TextField(blank=True, null=True, verbose_name="Description (Bangla)")
+    description_en = models.TextField(blank=True, null=True, verbose_name="Description (English)")
 
     def __str__(self):
         return self.name_en
