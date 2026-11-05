@@ -1,4 +1,4 @@
-from django.contrib.admin import views
+from . import views
 from django.urls import path
 from .views import AboutPageDataView, DiagnosticTestListView, HeroSliderListView, PatientReportSearchAPIView
 
