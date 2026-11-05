@@ -96,46 +96,43 @@ export default function Department() {
     });
 
     // 🟢 2. Sync with Navbar's languageChange event
-    useEffect(() => {
-        const handleLangChange = () => {
-            const currentLang = localStorage.getItem(STORAGE_KEY) || 'bn';
-            setLang(currentLang);
-        };
+ // Fetch live departments from Admin Panel API
+useEffect(() => {
+    const fetchDepartments = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/departments/`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const formatted = data.map(dept => {
+                        // 🟢 Null Check & Fallback Logic
+                        const enDesc = dept.description_en || dept.description || dept.desc_en || '';
+                        const bnDesc = dept.description_bn || dept.description || dept.desc_bn || '';
 
-        window.addEventListener('languageChange', handleLangChange);
-        return () => window.removeEventListener('languageChange', handleLangChange);
-    }, []);
-
-    // Fetch live departments from Admin Panel API
-    useEffect(() => {
-        const fetchDepartments = async () => {
-            setIsLoading(true);
-            try {
-                const res = await fetch(`${API_BASE_URL}/departments/`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        const formatted = data.map(dept => ({
+                        return {
                             id: dept.id,
-                            nameEn: dept.name_en,
-                            nameBn: dept.name_bn,
-                            descEn: dept.description_en || dept.description,
-                            descBn: dept.description_bn || dept.description,
+                            nameEn: dept.name_en || dept.nameEn,
+                            nameBn: dept.name_bn || dept.nameBn,
+                            // যদি ব্যাকএন্ড খালি থাকে, তবে ডিফল্ট মেসেজ বা পুরনো ফলব্যাক দেখাবে
+                            descEn: enDesc || "Specialized clinical consultation and healthcare support.",
+                            descBn: bnDesc || "বিশেষায়িত ক্লিনিক্যাল কনসালটেশন ও চিকিৎসাসেবা।",
                             iconName: dept.icon || 'Stethoscope',
-                            totalDoctors: dept.doctors ? dept.doctors.length : 0
-                        }));
-                        setDepartments(formatted);
-                    }
+                            totalDoctors: dept.doctors ? dept.doctors.length : (dept.totalDoctors || 0)
+                        };
+                    });
+                    setDepartments(formatted);
                 }
-            } catch (err) {
-                console.log("Using local department dataset (Admin API Offline)");
-            } finally {
-                setIsLoading(false);
             }
-        };
+        } catch (err) {
+            console.log("Using local department dataset (Admin API Offline)", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        fetchDepartments();
-    }, []);
+    fetchDepartments();
+}, []);
 
     const filteredDepartments = departments.filter(dept => {
         const title = (dept.nameEn + dept.nameBn).toLowerCase();
