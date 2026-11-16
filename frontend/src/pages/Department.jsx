@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
     Stethoscope, 
@@ -7,7 +7,8 @@ import {
     Search, 
     Home,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    FilterX
 } from 'lucide-react';
 
 // Local fallback e sothik Relative Path (/api) set korun:
@@ -86,6 +87,12 @@ export default function Department() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // 🟢 URL Hash থেকে সিলেক্টেড ডিপার্টমেন্ট ধরা (যেমন: #orthopedics -> orthopedics)
+    const activeHash = location.hash ? location.hash.replace('#', '').toLowerCase() : '';
+
     // 🟢 1. Initialize language from LocalStorage
     const [lang, setLang] = useState(() => {
         try {
@@ -96,48 +103,72 @@ export default function Department() {
     });
 
     // 🟢 2. Sync with Navbar's languageChange event
- // Fetch live departments from Admin Panel API
-useEffect(() => {
-    const fetchDepartments = async () => {
-        setIsLoading(true);
-        try {
-            const res = await fetch(`${API_BASE_URL}/departments/`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    const formatted = data.map(dept => {
-                        // 🟢 Null Check & Fallback Logic
-                        const enDesc = dept.description_en || dept.description || dept.desc_en || '';
-                        const bnDesc = dept.description_bn || dept.description || dept.desc_bn || '';
+    useEffect(() => {
+        const handleLangChange = () => {
+            const currentLang = localStorage.getItem(STORAGE_KEY) || 'bn';
+            setLang(currentLang);
+        };
+        window.addEventListener('languageChange', handleLangChange);
+        return () => window.removeEventListener('languageChange', handleLangChange);
+    }, []);
 
-                        return {
-                            id: dept.id,
-                            nameEn: dept.name_en || dept.nameEn,
-                            nameBn: dept.name_bn || dept.nameBn,
-                            // যদি ব্যাকএন্ড খালি থাকে, তবে ডিফল্ট মেসেজ বা পুরনো ফলব্যাক দেখাবে
-                            descEn: enDesc || "Specialized clinical consultation and healthcare support.",
-                            descBn: bnDesc || "বিশেষায়িত ক্লিনিক্যাল কনসালটেশন ও চিকিৎসাসেবা।",
-                            iconName: dept.icon || 'Stethoscope',
-                            totalDoctors: dept.doctors ? dept.doctors.length : (dept.totalDoctors || 0)
-                        };
-                    });
-                    setDepartments(formatted);
+    // Fetch live departments from Admin Panel API
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            setIsLoading(true);
+            try {
+                const res = await fetch(`${API_BASE_URL}/departments/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const formatted = data.map(dept => {
+                            const enDesc = dept.description_en || dept.description || dept.desc_en || '';
+                            const bnDesc = dept.description_bn || dept.description || dept.desc_bn || '';
+
+                            return {
+                                id: dept.id,
+                                nameEn: dept.name_en || dept.nameEn || '',
+                                nameBn: dept.name_bn || dept.nameBn || '',
+                                descEn: enDesc || "Specialized clinical consultation and healthcare support.",
+                                descBn: bnDesc || "বিশেষায়িত ক্লিনিক্যাল কনসালটেশন ও চিকিৎসাসেবা।",
+                                iconName: dept.icon || 'Stethoscope',
+                                totalDoctors: dept.doctors ? dept.doctors.length : (dept.totalDoctors || 0)
+                            };
+                        });
+                        setDepartments(formatted);
+                    }
                 }
+            } catch (err) {
+                console.log("Using local department dataset (Admin API Offline)", err);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (err) {
-            console.log("Using local department dataset (Admin API Offline)", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        };
 
-    fetchDepartments();
-}, []);
+        fetchDepartments();
+    }, []);
 
+    // 🟢 Specific Department (Hash) + Search Filtering Logic
     const filteredDepartments = departments.filter(dept => {
-        const title = (dept.nameEn + dept.nameBn).toLowerCase();
+        const title = `${dept.nameEn} ${dept.nameBn}`.toLowerCase();
+
+        // ন্যাভবার থেকে কোনো নির্দিষ্ট ডিপার্টমেন্ট সিলেক্ট করা হলে
+        if (activeHash) {
+            const cleanHash = activeHash.replace(/-/g, ' ');
+            // নামের শুরুর অংশ বা মূল শব্দ ম্যাচ করানো (যেমন: 'orthopedics' -> 'orthopedic', 'surgery' -> 'surgery')
+            const keyword = cleanHash.endsWith('s') ? cleanHash.slice(0, -1) : cleanHash;
+            return title.includes(cleanHash) || title.includes(keyword);
+        }
+
+        // সার্চ বক্স দিয়ে খুঁজলে
         return title.includes(searchQuery.toLowerCase());
     });
+
+    // সব বিভাগ পুনরায় দেখানোর ফাংশন
+    const handleShowAll = () => {
+        setSearchQuery('');
+        navigate('/department');
+    };
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans py-10 px-4 sm:px-8 selection:bg-[#97D739] selection:text-[#00381b]">
@@ -161,7 +192,7 @@ useEffect(() => {
                             : 'Explore specialized medical departments and expert consultancy services.'}
                     </p>
 
-                    {/* 🟢 Back to Home Navigation Link */}
+                    {/* Back to Home Navigation Link */}
                     <div className="pt-1">
                         <Link 
                             to="/" 
@@ -180,10 +211,29 @@ useEffect(() => {
                         type="text"
                         placeholder={lang === 'bn' ? 'ডিপার্টমেন্টের নাম দিয়ে খুঁজুন...' : 'Search department name...'}
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => {
+                            if (activeHash) navigate('/department');
+                            setSearchQuery(e.target.value);
+                        }}
                         className="w-full bg-slate-900 border border-slate-800 text-white rounded-2xl pl-11 pr-4 py-3 text-xs font-bold focus:outline-none focus:border-[#97D739] transition shadow-lg"
                     />
                 </div>
+
+                {/* 🟢 নির্দিষ্ট ডিপার্টমেন্ট সিলেক্ট করা থাকলে 'Show All' বাটন দেখাবে */}
+                {activeHash && (
+                    <div className="flex items-center justify-center gap-3">
+                        <span className="text-xs text-slate-400">
+                            {lang === 'bn' ? 'নির্বাচিত বিভাগ দেখানো হচ্ছে' : 'Showing selected department'}
+                        </span>
+                        <button
+                            onClick={handleShowAll}
+                            className="inline-flex items-center gap-1.5 bg-[#97D739]/15 hover:bg-[#97D739] text-[#97D739] hover:text-slate-950 border border-[#97D739]/40 px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer"
+                        >
+                            <FilterX size={14} />
+                            <span>{lang === 'bn' ? 'সকল বিভাগ দেখুন' : 'Show All Departments'}</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* DEPARTMENTS GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

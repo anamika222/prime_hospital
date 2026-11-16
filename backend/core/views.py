@@ -1,8 +1,9 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from .models import Certification, CommitteeMember, CoreValue, Department, DiagnosticTest, Doctor, Feature, HeroSlider, Milestone, PatientReport, PatientReview
-from .serializers import CertificationSerializer, CommitteeMemberSerializer, CoreValueSerializer, DepartmentSerializer, DoctorSerializer, DiagnosticTestSerializer, FeatureSerializer, HeroSliderSerializer, MilestoneSerializer, PatientReportSerializer, PatientReviewSerializer
+from .serializers import AppointmentSerializer, CertificationSerializer, CommitteeMemberSerializer, CoreValueSerializer, DepartmentSerializer, DoctorSerializer, DiagnosticTestSerializer, FeatureSerializer, HeroSliderSerializer, MilestoneSerializer, PatientReportSerializer, PatientReviewSerializer
 
 # ফ্রন্টএন্ডের জন্য শুধুমাত্র এক্টিভ স্লাইডগুলো পাওয়ার API
 class HeroSliderListView(generics.ListAPIView):
@@ -60,3 +61,10 @@ class AboutPageDataView(APIView):
             "reviews": PatientReviewSerializer(reviews, many=True).data,
         }
         return Response(data)
+@api_view(['POST'])
+def create_appointment(request):
+    serializer = AppointmentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

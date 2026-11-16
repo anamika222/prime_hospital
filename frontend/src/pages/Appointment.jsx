@@ -17,6 +17,8 @@ import {
     Check
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const DOCTORS_AND_TESTS = [
     { id: 'd1', name: 'Prof. Dr. S. M. Rahman', spec: 'Chief Pathologist', fee: '৳ ১,০০০', type: 'doctor', exp: '15+ Yrs Exp.' },
     { id: 'd2', name: 'Dr. Nusrat Jahan', spec: 'Senior Microbiologist', fee: '৳ ৮০০', type: 'doctor', exp: '10+ Yrs Exp.' },
@@ -40,10 +42,44 @@ export default function Appointment() {
     const [patientPhone, setPatientPhone] = useState('');
     const [patientAddress, setPatientAddress] = useState('');
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleBookingSubmit = (e) => {
+    const handleBookingSubmit = async (e) => {
         e.preventDefault();
-        setIsConfirmed(true);
+        setIsSubmitting(true);
+
+        const payload = {
+            service_name: selectedService.name,
+            service_type: selectedService.type,
+            fee: selectedService.fee,
+            appointment_mode: appointmentMode,
+            appointment_date: selectedDate,
+            time_slot: selectedTime,
+            patient_name: patientName,
+            patient_phone: patientPhone,
+            patient_address: appointmentMode === 'home' ? patientAddress : ''
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/appointments/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (res.ok) {
+                setIsConfirmed(true);
+            } else {
+                alert('অ্যাপয়েন্টমেন্ট সাবমিট করতে সমস্যা হয়েছে। অনুগ্রহ করে সব তথ্য সঠিকভাবে দিন।');
+            }
+        } catch (error) {
+            console.error('Booking Error:', error);
+            alert('সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleReset = () => {
@@ -337,16 +373,19 @@ export default function Appointment() {
                                     <div className="flex gap-4 pt-2">
                                         <button 
                                             type="button"
+                                            disabled={isSubmitting}
                                             onClick={() => setStep(2)}
-                                            className="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                                            className="w-1/3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 py-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                                         >
                                             <ArrowLeft size={16} /> Back
                                         </button>
                                         <button 
                                             type="submit"
-                                            className="w-2/3 bg-[#97D739] hover:bg-white text-[#00381b] py-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#97D739]/10 transition cursor-pointer"
+                                            disabled={isSubmitting}
+                                            className="w-2/3 bg-[#97D739] hover:bg-white disabled:opacity-50 text-[#00381b] py-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#97D739]/10 transition cursor-pointer"
                                         >
-                                            <ShieldCheck size={18} /> Confirm Appointment
+                                            <ShieldCheck size={18} /> 
+                                            {isSubmitting ? 'Confirming...' : 'Confirm Appointment'}
                                         </button>
                                     </div>
                                 </form>

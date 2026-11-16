@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Certification, CommitteeMember, CoreValue, Department, Doctor, DiagnosticTest, Feature, HeroSlider, Milestone, PatientReport, PatientReview
+from .models import Certification, CommitteeMember, CoreValue, Department, Doctor, DiagnosticTest, Feature, HeroSlider, Milestone, PatientReport, PatientReview, Appointment
+import csv
+from django.http import HttpResponse
 
 @admin.register(HeroSlider)
 class HeroSliderAdmin(admin.ModelAdmin):
@@ -79,3 +81,32 @@ class CoreValueAdmin(admin.ModelAdmin):
 @admin.register(PatientReview)
 class PatientReviewAdmin(admin.ModelAdmin):
     list_display = ('name_en', 'rating')
+
+
+def export_appointments_csv(modeladmin, request, queryset):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="prime_clinic_appointments.csv"'
+    writer = csv.writer(response)
+    
+    writer.writerow([
+        'Patient Name', 'Phone', 'Service', 'Type', 'Fee', 
+        'Mode', 'Date', 'Time Slot', 'Address', 'Status', 'Booked At'
+    ])
+    
+    for obj in queryset:
+        writer.writerow([
+            obj.patient_name, obj.patient_phone, obj.service_name, obj.service_type,
+            obj.fee, obj.appointment_mode, obj.appointment_date, obj.time_slot,
+            obj.patient_address, obj.status, obj.created_at.strftime("%Y-%m-%d %H:%M")
+        ])
+    return response
+
+export_appointments_csv.short_description = "Download Selected as Excel (CSV)"
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('patient_name', 'patient_phone', 'service_name', 'appointment_date', 'time_slot', 'appointment_mode', 'status')
+    list_filter = ('status', 'appointment_date', 'appointment_mode', 'service_type')
+    search_fields = ('patient_name', 'patient_phone', 'service_name')
+    list_editable = ('status',)
+    actions = [export_appointments_csv]

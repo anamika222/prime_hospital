@@ -169,3 +169,26 @@ class PatientReview(models.Model):
 
     def __str__(self):
         return self.name_en
+
+class Appointment(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    service_name = models.CharField(max_length=200)
+    service_type = models.CharField(max_length=50)  # doctor বা test
+    fee = models.CharField(max_length=50, blank=True, null=True)
+    appointment_mode = models.CharField(max_length=20, default='lab')  # lab বা home
+    appointment_date = models.DateField()
+    time_slot = models.CharField(max_length=50)
+    patient_name = models.CharField(max_length=150)
+    patient_phone = models.CharField(max_length=30)
+    patient_address = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.patient_name} - {self.service_name} ({self.appointment_date})"

@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Certification, CommitteeMember, CoreValue, Department, Doctor, Feature, HeroSlider,  DiagnosticTest, Milestone, PatientReport, PatientReview
+from .models import Appointment, Certification, CommitteeMember, CoreValue, Department, Doctor, Feature, HeroSlider,  DiagnosticTest, Milestone, PatientReport, PatientReview
 
 class HeroSliderSerializer(serializers.ModelSerializer):
     imageUrl = serializers.ImageField(source='image', read_only=True)
@@ -102,4 +102,9 @@ class CoreValueSerializer(serializers.ModelSerializer):
 class PatientReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientReview
+        fields = '__all__'
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
         fields = '__all__'
