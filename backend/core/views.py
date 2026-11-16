@@ -1,7 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView, csrf_exempt
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from .models import Certification, CommitteeMember, CoreValue, Department, DiagnosticTest, Doctor, Feature, HeroSlider, Milestone, PatientReport, PatientReview
 from .serializers import AppointmentSerializer, CertificationSerializer, CommitteeMemberSerializer, CoreValueSerializer, DepartmentSerializer, DoctorSerializer, DiagnosticTestSerializer, FeatureSerializer, HeroSliderSerializer, MilestoneSerializer, PatientReportSerializer, PatientReviewSerializer
 
@@ -61,7 +62,11 @@ class AboutPageDataView(APIView):
             "reviews": PatientReviewSerializer(reviews, many=True).data,
         }
         return Response(data)
+
+@csrf_exempt
 @api_view(['POST'])
+@authentication_classes([])  # 🟢 Session/CSRF চেক বাইপাস করবে যাতে পাবলিক ইউজার বুক করতে পারে
+@permission_classes([AllowAny])
 def create_appointment(request):
     serializer = AppointmentSerializer(data=request.data)
     if serializer.is_valid():
